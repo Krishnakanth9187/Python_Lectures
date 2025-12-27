@@ -1,0 +1,279 @@
+# OOP Fundamentals — Classes & Objects
+
+## 1. Learning objectives
+
+By the end of this lecture students will be able to:
+
+* Explain what a class and an object are.
+* Create classes in Python and instantiate objects.
+* Distinguish between instance attributes and class attributes.
+* Implement and call instance methods, class methods, and static methods.
+* Describe the purpose of the `__init__` constructor and the `self` parameter.
+* Track and reason about an object's state across method calls.
+
+---
+
+## 2. Quick conceptual summary
+
+* **Class**: a blueprint or template for creating objects. It describes the data (attributes) and behavior (methods) that its objects will have.
+* **Object (instance)**: a concrete realization of a class — memory with attributes set and methods available.
+* **Attribute**: a variable attached to a class or an instance. Instance attributes belong to a particular object; class attributes are shared by the class and all instances.
+* **Method**: a function defined inside a class. Methods typically operate on instance data (via `self`).
+* **`__init__`**: the initializer (constructor) called when a new instance is created. It sets up instance attributes.
+* **`self`**: the conventional name for the first parameter of instance methods. It refers to the instance on which the method is invoked.
+
+---
+
+## 3. Anatomy of a simple class — `Person`
+
+```python
+class Person:
+    """A simple Person class showing constructor, attributes and methods."""
+
+    # class attribute (shared by all instances)
+    species = 'Homo sapiens'
+
+    def __init__(self, name, age):
+        # instance attributes (unique to each object)
+        self.name = name
+        self.age = age
+        self._friend_names = []  # an internal list representing state
+
+    def greet(self):
+        """Instance method: uses `self` to access instance attributes."""
+        return f"Hi, I'm {self.name} and I'm {self.age} years old."
+
+    def add_friend(self, friend_name):
+        """Modify the object's state stored in instance attributes."""
+        self._friend_names.append(friend_name)
+
+    def get_friends(self):
+        return list(self._friend_names)  # return a copy for safety
+
+    @classmethod
+    def common_species(cls):
+        """Class method: receives the class itself as `cls`."""
+        return cls.species
+
+    @staticmethod
+    def is_adult(age):
+        """Static method: utility function that doesn't access class/instance data."""
+        return age >= 18
+```
+
+### Example usage (interactive demo)
+
+```python
+alice = Person('Alice', 30)
+bob = Person('Bob', 17)
+
+print(alice.greet())          # Hi, I'm Alice and I'm 30 years old.
+print(Person.common_species())# Homo sapiens
+print(Person.is_adult(bob.age)) # False
+
+alice.add_friend('Bob')
+print(alice.get_friends())    # ['Bob']
+print(bob.get_friends())      # []    <-- different instance state
+```
+
+**Teaching notes**:
+
+* Show that `alice` and `bob` have their own `name`, `age`, and friend lists.
+* Show that `species` is shared: `Person.species` and `alice.species` refer to the same value unless overridden on the instance.
+
+---
+
+## 4. Instance vs Class attributes (detailed)
+
+* **Instance attribute**: assigned in `__init__` (or elsewhere on `self`), unique per object.
+* **Class attribute**: defined directly in the class body. Shared by default across instances.
+
+```python
+class Counter:
+    count = 0  # class attribute — shared across instances
+
+    def __init__(self):
+        self.id = Counter.count  # give each instance an id
+        Counter.count += 1
+
+c1 = Counter()
+c2 = Counter()
+print(c1.id, c2.id)  # 0 1
+print(Counter.count) # 2
+```
+
+**Pitfall to demonstrate**: mutable class attributes
+
+```python
+class Bag:
+    items = []  # shared list — usually not what you want
+
+    def __init__(self):
+        pass
+
+b1 = Bag()
+b2 = Bag()
+b1.items.append('apple')
+print(b2.items)  # ['apple']  <-- surprise!
+```
+
+Explain: Use instance attributes for per-object mutable state. If you need a value shared by all objects (a constant or a registry), class attributes are appropriate.
+
+---
+
+## 5. The `__init__` constructor and `self`
+
+* `__init__(self, ...)` is called right after a new instance is created.
+* `self` refers to the instance being initialized — `self.attr = value` assigns instance attributes.
+* It's *not* the object creation mechanism itself (that is `__new__`), but for most teaching purposes `__init__` is the constructor you need.
+
+```python
+class Point:
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
+
+p = Point(3, 4)
+print(p.x, p.y)  # 3 4
+```
+
+Teaching tip: show a diagram mapping `self` to the instance and attribute storage.
+
+---
+
+## 6. Methods — types and examples
+
+1. **Instance methods** — first parameter `self`. They can read/modify the instance state.
+2. **Class methods** — decorated with `@classmethod`. First parameter `cls` is the class. Useful for alternate constructors or behavior that affects the class.
+3. **Static methods** — decorated with `@staticmethod`. No implicit first argument. Good for utility functions logically grouped inside the class.
+
+```python
+class Book:
+    library_name = 'City Library'
+
+    def __init__(self, title, author):
+        self.title = title
+        self.author = author
+
+    def short_title(self):
+        return f"{self.title} — {self.author}"
+
+    @classmethod
+    def set_library_name(cls, name):
+        cls.library_name = name
+
+    @staticmethod
+    def is_valid_isbn(isbn):
+        # very small stub of a validator; real validation is more complex
+        return isinstance(isbn, str) and len(isbn.replace('-', '')) in (10, 13)
+```
+
+Demonstrate altering `library_name` via `Book.set_library_name('New Name')` and show effect on `Book.library_name`.
+
+---
+
+## 7. Object state and behavior example — `BankAccount`
+
+A practical example that shows state changes over time.
+
+```python
+class BankAccount:
+    def __init__(self, owner, balance=0):
+        self.owner = owner
+        self.balance = balance
+
+    def deposit(self, amount):
+        if amount <= 0:
+            raise ValueError('deposit amount must be positive')
+        self.balance += amount
+        return self.balance
+
+    def withdraw(self, amount):
+        if amount <= 0:
+            raise ValueError('withdraw amount must be positive')
+        if amount > self.balance:
+            raise RuntimeError('insufficient funds')
+        self.balance -= amount
+        return self.balance
+
+    def __repr__(self):
+        return f"<BankAccount owner={self.owner!r} balance={self.balance}>"
+
+acct = BankAccount('Alice', 100)
+print(acct)            # <BankAccount owner='Alice' balance=100>
+acct.deposit(50)
+print(acct.balance)    # 150
+acct.withdraw(70)
+print(acct.balance)    # 80
+```
+
+Teaching points:
+
+* `deposit` and `withdraw` change the object's internal state (`balance`).
+* `__repr__` helps debugging and REPL exploration.
+* Emphasize input validation and raising exceptions for incorrect use.
+
+---
+
+## 8. Best practices and conventions
+
+* Use `self` as the name of the first parameter for instance methods, and `cls` for class methods.
+* Put per-instance mutable state in instance attributes inside `__init__`.
+* Avoid mutable class attributes unless intentionally shared across instances.
+* Keep methods focused: one responsibility per method.
+* Use `__repr__` for developer-friendly representation and `__str__` for user-facing strings.
+* Prefer composition over inheritance when adding functionality (short note — deeper coverage in a later lecture).
+
+---
+
+## 9. Short classroom exercises (with expected outcomes)
+
+1. **Exercise 1 — `Rectangle`**
+
+   * Create a `Rectangle` class with `width` and `height`.
+   * Methods: `area()`, `perimeter()`, and `scale(factor)` that multiplies both sides.
+   * Expected: `Rectangle(2,3).area() == 6`.
+
+2. **Exercise 2 — `Student` roster**
+
+   * Create `Student` with attributes `name`, `grades` (list).
+   * Method `add_grade(grade)`, `average()`.
+   * Ensure each student has their own `grades` list (avoid using a mutable class attribute).
+
+3. **Exercise 3 — Classmethod alternate constructor**
+
+   * Create `Time` class storing hours and minutes.
+   * Add `from_string("HH:MM")` as a `@classmethod` to parse and return a `Time` instance.
+
+---
+
+## 10. Demo script for a live lecture (10–15 minutes)
+
+1. Start REPL and create a `Person` instance. Show `__dict__` of the instance.
+2. Modify an attribute from outside the class: `alice.age = 31` and show `greet()` reflects change.
+3. Show class attribute behavior and mutable class attribute pitfall with `Bag` example.
+4. Walk through `BankAccount` deposit/withdraw demonstrating state transitions and exceptions.
+
+---
+
+## 11. Common questions & answers
+
+* *Q: Is `self` a keyword?* — No, it is a convention. You could name it anything, but always use `self` for readability.
+* *Q: Do I need `__init__`?* — Not always. If you don't need to initialize instance state, you may omit it.
+* *Q: What's the difference between `__repr__` and `__str__`?* — `__repr__` is for developers and should aim to be unambiguous; `__str__` is for end-user readable representations.
+
+---
+
+## 12. Further reading and next topics
+
+* Inheritance and polymorphism
+* Encapsulation and property decorators (`@property`)
+* Data classes (`@dataclass`) for boilerplate reduction
+* Composition vs inheritance patterns
+
+---
+
+### End of lecture notes — ready to present or export
+
+If you want, I can convert these notes into a slide deck (PowerPoint), printable handout, or a set of Jupyter notebook cells for in-class live coding.
+
