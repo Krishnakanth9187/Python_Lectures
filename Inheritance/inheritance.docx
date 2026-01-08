@@ -1,0 +1,396 @@
+# OOP Principles — Inheritance & Encapsulation (Python)
+
+---
+
+## 1. Learning objectives
+
+By the end of this lecture, students will be able to:
+
+* Explain **inheritance** and why it is used in OOP
+* Implement **single** and **multiple inheritance** in Python
+* Understand Python’s **Method Resolution Order (MRO)**
+* Explain **encapsulation** and its purpose
+* Use **public, protected, and private** members correctly
+* Apply encapsulation to protect object state
+
+---
+
+## 2. Why OOP principles matter
+
+OOP principles help us:
+
+* Reduce code duplication
+* Model real-world relationships
+* Make code easier to extend and maintain
+* Protect internal object state from misuse
+
+Inheritance and encapsulation are two **core pillars** of object-oriented design.
+
+---
+
+# PART A — INHERITANCE
+
+## 3. What is inheritance?
+
+> **Inheritance** allows a class (child / subclass) to reuse and extend the behavior of another class (parent / base class).
+
+**Real-world analogy**:
+
+* A `Car` *is a* `Vehicle`
+* A `Dog` *is an* `Animal`
+* A `Quadrotor` *is a* `Drone`
+
+---
+
+## 4. Single inheritance (basic form)
+
+```python
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def speak(self):
+        print("The animal makes a sound")
+
+
+class Dog(Animal):  # Dog inherits from Animal
+    def speak(self):
+        print(f"{self.name} says Woof!")
+```
+
+### Usage
+
+```python
+d = Dog("Bruno")
+d.speak()
+```
+
+**Output**
+
+```
+Bruno says Woof!
+```
+
+### Teaching points
+
+* `Dog` automatically gets `name` from `Animal`
+* `Dog` overrides `speak()`
+* This is **single inheritance** (one parent)
+
+---
+
+## 5. Using `super()` (very important)
+
+```python
+class Vehicle:
+    def __init__(self, speed):
+        self.speed = speed
+
+    def move(self):
+        print("Vehicle is moving")
+
+
+class Car(Vehicle):
+    def __init__(self, speed, fuel_type):
+        super().__init__(speed)  # call parent constructor
+        self.fuel_type = fuel_type
+
+    def move(self):
+        super().move()
+        print(f"Car is moving at {self.speed} km/h")
+```
+
+### Teaching points
+
+* `super()` calls the **next class in MRO**
+* Prevents code duplication
+* Essential for multiple inheritance
+
+---
+
+## 6. Multiple inheritance
+
+> **Multiple inheritance** means a class inherits from more than one parent class.
+
+```python
+class Flyable:
+    def fly(self):
+        print("Can fly")
+
+
+class Swimmable:
+    def swim(self):
+        print("Can swim")
+
+
+class Duck(Flyable, Swimmable):
+    pass
+```
+
+### Usage
+
+```python
+d = Duck()
+d.fly()
+d.swim()
+```
+
+**Output**
+
+```
+Can fly
+Can swim
+```
+
+### Teaching points
+
+* Python allows multiple inheritance
+* Use it for **capabilities**, not identity
+
+---
+
+## 7. Method Resolution Order (MRO)
+
+When multiple parents have the same method name, Python uses **MRO**.
+
+```python
+class A:
+    def show(self):
+        print("A")
+
+class B(A):
+    def show(self):
+        print("B")
+
+class C(A):
+    def show(self):
+        print("C")
+
+class D(B, C):
+    pass
+```
+
+```python
+d = D()
+d.show()
+print(D.mro())
+```
+
+**Output**
+
+```
+B
+[D, B, C, A, object]
+```
+
+### Teaching points
+
+* Python searches left → right
+* MRO avoids ambiguity (diamond problem)
+
+---
+
+## 8. When NOT to use inheritance
+
+* If relationship is **"has-a"**, not **"is-a"**
+* Prefer **composition** over inheritance when behavior varies
+
+Example:
+
+```python
+class Engine:
+    def start(self):
+        print("Engine started")
+
+class Car:
+    def __init__(self):
+        self.engine = Engine()
+```
+
+---
+
+# PART B — ENCAPSULATION
+
+## 9. What is encapsulation?
+
+> **Encapsulation** means bundling data and methods together and **restricting direct access** to internal details.
+
+Goals:
+
+* Protect object state
+* Prevent invalid modifications
+* Control how data is accessed or changed
+
+---
+
+## 10. Access levels in Python
+
+Python uses **naming conventions** (not strict access modifiers):
+
+| Level     | Syntax   | Meaning                      |
+| --------- | -------- | ---------------------------- |
+| Public    | `attr`   | Accessible everywhere        |
+| Protected | `_attr`  | Internal use (by convention) |
+| Private   | `__attr` | Name-mangled, class-only     |
+
+---
+
+## 11. Public attributes
+
+```python
+class Person:
+    def __init__(self, name):
+        self.name = name  # public
+
+p = Person("Meena")
+print(p.name)
+p.name = "Anu"
+```
+
+📌 No restrictions — flexible but unsafe
+
+---
+
+## 12. Protected attributes (`_attribute`)
+
+```python
+class Employee:
+    def __init__(self, salary):
+        self._salary = salary  # protected
+
+    def get_salary(self):
+        return self._salary
+```
+
+```python
+e = Employee(50000)
+print(e._salary)  # allowed, but discouraged
+```
+
+📌 Meaning:
+
+> “You *can* access this, but you *shouldn’t*.”
+
+---
+
+## 13. Private attributes (`__attribute`)
+
+```python
+class BankAccount:
+    def __init__(self, balance):
+        self.__balance = balance  # private
+
+    def deposit(self, amount):
+        self.__balance += amount
+
+    def get_balance(self):
+        return self.__balance
+```
+
+```python
+acct = BankAccount(1000)
+print(acct.get_balance())
+# print(acct.__balance)  # AttributeError
+```
+
+### What Python actually does (name mangling)
+
+```python
+print(acct.__dict__)
+```
+
+```text
+{'_BankAccount__balance': 1000}
+```
+
+📌 Private ≠ truly hidden, but **strongly discouraged** to access
+
+---
+
+## 14. Encapsulation using `@property` (recommended way)
+
+```python
+class Temperature:
+    def __init__(self, celsius):
+        self._celsius = celsius
+
+    @property
+    def celsius(self):
+        return self._celsius
+
+    @celsius.setter
+    def celsius(self, value):
+        if value < -273.15:
+            raise ValueError("Temperature below absolute zero")
+        self._celsius = value
+```
+
+```python
+t = Temperature(25)
+t.celsius = 30
+print(t.celsius)
+```
+
+📌 Allows **controlled access** with validation
+
+---
+
+## 15. Inheritance + encapsulation together
+
+```python
+class Account:
+    def __init__(self, balance):
+        self._balance = balance
+
+    def deposit(self, amount):
+        self._balance += amount
+
+class SavingsAccount(Account):
+    def apply_interest(self):
+        self._balance *= 1.05
+```
+
+📌 Protected attributes are meant for subclasses
+
+---
+
+## 16. Common mistakes (exam & real-world)
+
+❌ Overusing inheritance
+❌ Accessing private members directly
+❌ Using double underscore unnecessarily
+❌ Confusing protection with security
+
+---
+
+## 17. One-slide summary
+
+* **Inheritance**: reuse and extend behavior
+* **Single inheritance**: one parent
+* **Multiple inheritance**: many parents (use carefully)
+* **Encapsulation**: protect internal state
+* **Public**: free access
+* **Protected**: internal use
+* **Private**: class-only (name mangling)
+
+---
+
+## 18. Exam-ready definitions
+
+* **Inheritance**: A mechanism where a class derives properties and behavior from another class.
+* **Encapsulation**: The practice of restricting direct access to object data and providing controlled access through methods.
+
+---
+
+## 19. Practice exercises
+
+1. Create a `Shape` base class and subclasses `Circle` and `Rectangle`
+2. Implement protected attributes for dimensions
+3. Use private attributes for internal counters
+4. Demonstrate MRO with three-level inheritance
+
+---
+
+### End of lecture notes
+
+If you want, I can convert this into slides, add diagrams, or tailor examples to robotics / ROS systems.
