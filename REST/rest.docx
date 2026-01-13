@@ -1,0 +1,338 @@
+# Python & Web APIs — HTTP Methods and `requests`
+
+---
+
+## 1. Learning objectives
+
+By the end of this lecture, students will be able to:
+
+* Understand what **HTTP** is and how the web works at a high level
+* Explain and use common **HTTP methods**: GET, POST, PUT, DELETE
+* Use the **`requests`** library to make HTTP calls in Python
+* Send **query parameters** and **headers**
+* Consume **web APIs** and external data sources
+* Parse and process **JSON responses** in Python
+
+---
+
+## 2. What is HTTP?
+
+> **HTTP (HyperText Transfer Protocol)** is a communication protocol used by clients (browsers, scripts) to talk to servers.
+
+### Client–Server model
+
+```text
+Client (Python script)  ───HTTP Request──▶  Server (API)
+Client (Python script)  ◀──HTTP Response─── Server (API)
+```
+
+An HTTP response usually contains:
+
+* Status code (e.g., 200, 404, 500)
+* Headers (metadata)
+* Body (data, often JSON)
+
+---
+
+## 3. HTTP methods (verbs)
+
+| Method | Purpose              | Example        |
+| ------ | -------------------- | -------------- |
+| GET    | Retrieve data        | Get user info  |
+| POST   | Create new data      | Create user    |
+| PUT    | Update existing data | Update profile |
+| DELETE | Remove data          | Delete record  |
+
+📌 Rule of thumb:
+
+* GET → read
+* POST → create
+* PUT → replace/update
+* DELETE → remove
+
+---
+
+## 4. The `requests` module
+
+Python does not include HTTP APIs by default. We use the **`requests`** library.
+
+### Installation
+
+```bash
+pip install requests
+```
+
+### Basic import
+
+```python
+import requests
+```
+
+---
+
+## 5. GET requests — retrieving data
+
+### Example: Simple GET request
+
+```python
+import requests
+
+response = requests.get("https://jsonplaceholder.typicode.com/posts/1")
+
+print(response.status_code)
+print(response.text)
+```
+
+### JSON response parsing
+
+```python
+data = response.json()
+print(data)
+print(data['title'])
+```
+
+📌 `response.json()` converts JSON → Python dict
+
+---
+
+## 6. Query parameters
+
+Used to filter or modify GET requests.
+
+### URL with query params
+
+```text
+https://api.example.com/search?userId=1&limit=5
+```
+
+### Using `params` argument
+
+```python
+params = {
+    'userId': 1,
+    'limit': 5
+}
+
+response = requests.get(
+    "https://jsonplaceholder.typicode.com/posts",
+    params=params
+)
+
+posts = response.json()
+print(len(posts))
+```
+
+📌 `requests` automatically encodes query parameters
+
+---
+
+## 7. Headers
+
+Headers send **metadata** with requests.
+
+Common headers:
+
+* `Content-Type`
+* `Authorization`
+* `Accept`
+
+### Example: Custom headers
+
+```python
+headers = {
+    'Accept': 'application/json',
+    'User-Agent': 'PythonLectureClient/1.0'
+}
+
+response = requests.get(
+    "https://jsonplaceholder.typicode.com/posts/1",
+    headers=headers
+)
+
+print(response.headers)
+```
+
+---
+
+## 8. POST requests — sending data
+
+Used to **create resources**.
+
+```python
+payload = {
+    'title': 'My Post',
+    'body': 'Hello World',
+    'userId': 1
+}
+
+response = requests.post(
+    "https://jsonplaceholder.typicode.com/posts",
+    json=payload
+)
+
+print(response.status_code)
+print(response.json())
+```
+
+📌 Use `json=` (not `data=`) when sending JSON
+
+---
+
+## 9. PUT requests — updating data
+
+```python
+updated_payload = {
+    'id': 1,
+    'title': 'Updated Title',
+    'body': 'Updated content',
+    'userId': 1
+}
+
+response = requests.put(
+    "https://jsonplaceholder.typicode.com/posts/1",
+    json=updated_payload
+)
+
+print(response.status_code)
+print(response.json())
+```
+
+📌 PUT replaces the resource completely
+
+---
+
+## 10. DELETE requests — removing data
+
+```python
+response = requests.delete(
+    "https://jsonplaceholder.typicode.com/posts/1"
+)
+
+print(response.status_code)
+```
+
+Typical success codes:
+
+* `200 OK`
+* `204 No Content`
+
+---
+
+## 11. HTTP status codes (important)
+
+| Code | Meaning      |
+| ---- | ------------ |
+| 200  | Success      |
+| 201  | Created      |
+| 400  | Bad request  |
+| 401  | Unauthorized |
+| 404  | Not found    |
+| 500  | Server error |
+
+```python
+if response.status_code == 200:
+    print("Request successful")
+```
+
+---
+
+## 12. Consuming Web APIs (end-to-end example)
+
+### Example: Fetch and process posts
+
+```python
+response = requests.get("https://jsonplaceholder.typicode.com/posts")
+posts = response.json()
+
+# Print titles of first 5 posts
+for post in posts[:5]:
+    print(post['id'], post['title'])
+```
+
+📌 External APIs return structured data (JSON)
+
+---
+
+## 13. Parsing JSON responses
+
+JSON maps naturally to Python:
+
+| JSON    | Python      |
+| ------- | ----------- |
+| object  | dict        |
+| array   | list        |
+| string  | str         |
+| number  | int / float |
+| boolean | bool        |
+
+```python
+user = {
+    "id": 1,
+    "name": "Meenu",
+    "skills": ["Python", "Robotics"]
+}
+
+print(user['skills'][0])
+```
+
+---
+
+## 14. Error handling (best practice)
+
+```python
+response = requests.get("https://jsonplaceholder.typicode.com/invalid")
+
+if response.ok:
+    print(response.json())
+else:
+    print("Error:", response.status_code)
+```
+
+---
+
+## 15. Real-world analogy
+
+* API → waiter
+* Request → order
+* Response → food
+* JSON → menu in structured format
+
+---
+
+## 16. Common mistakes
+
+❌ Forgetting to check status codes
+❌ Parsing JSON without calling `.json()`
+❌ Sending data using GET instead of POST
+❌ Hardcoding sensitive tokens in code
+
+---
+
+## 17. One-slide summary
+
+* HTTP methods define **intent**
+* `requests` simplifies HTTP calls
+* Query params and headers customize requests
+* APIs return JSON
+* JSON is parsed into Python dicts/lists
+
+---
+
+## 18. Practice exercises
+
+1. Fetch users and print their names
+2. Filter posts using query parameters
+3. Create a POST request with custom headers
+4. Handle API errors gracefully
+
+---
+
+### End of lecture notes
+
+If you want, I can:
+
+* Convert this into slides
+* Add authentication examples (API keys, tokens)
+* Add robotics/ROS-style REST API demos
+* Create assignments with solutions
+
