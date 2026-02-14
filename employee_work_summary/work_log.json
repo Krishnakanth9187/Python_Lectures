@@ -1,0 +1,20 @@
+[
+  {
+    "emp_id": "EMP101",
+    "name": "Anjali Menon",
+    "employee_type": "permanent",
+    "hourly_rate": 500,
+    "login_time": "09:00",
+    "logout_time": "17:30",
+    "date": "2025-12-15"
+  },
+  {
+    "emp_id": "EMP102",
+    "name": "Rahul Nair",
+    "employee_type": "permanent",
+    "hourly_rate": 400,
+    "login_time": "10:00",
+    "logout_time": "18:00",
+    "date": "2025-12-15"
+  }
+]

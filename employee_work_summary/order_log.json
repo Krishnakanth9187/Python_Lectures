@@ -1,0 +1,20 @@
+[
+  {
+    "order_id": "ORD101",
+    "customer_name": "Vivek Sharma",
+    "order_type": "regular",
+    "product_id": 1,
+    "quantity": 2,
+    "unit_price": 1500,
+    "order_date": "2025-01-22"
+  },
+  {
+    "order_id": "ORD102",
+    "customer_name": "Asha Nair",
+    "order_type": "premium",
+    "product_id": 3,
+    "quantity": 1,
+    "unit_price": 2500,
+    "order_date": "2025-01-22"
+  }
+]

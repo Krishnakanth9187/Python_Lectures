@@ -23,5 +23,5 @@ print(Bag.items)
 
 c1 = Counter()
 c2 = Counter()
-print(c1.id, c2.id) # 0 1
+print(c1.id, c2.id) 
 print(Counter.count) # 2

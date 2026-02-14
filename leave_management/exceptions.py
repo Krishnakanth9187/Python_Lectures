@@ -1,0 +1,2 @@
+class InvalidLeaveRequestError(Exception):
+    pass

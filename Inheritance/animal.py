@@ -1,7 +1,9 @@
 class Animal:
+    animal_num = 0
     def __init__(self):
         self.name = "meenu"
         self.heart = True
+        animal_num = animal_num + 1
 
     def speak(self):
         print("The animal makes a sound")
